@@ -220,7 +220,7 @@ class _PLS(six.with_metaclass(ABCMeta), BaseEstimator, TransformerMixin,
         self.tol = tol
         self.copy = copy
 
-    def fit(self, X, Y):
+    def fit(self, X, Y, copy=None):
         """Fit model to data.
 
         Parameters
@@ -232,12 +232,16 @@ class _PLS(six.with_metaclass(ABCMeta), BaseEstimator, TransformerMixin,
         Y : array-like of response, shape = [n_samples, n_targets]
             Target vectors, where n_samples in the number of samples and
             n_targets is the number of response variables.
+
+        copy : boolean, defaults to self.copy
+               Whether to copy X and Y, or perform in-place normalization.
         """
 
         # copy since this will contains the residuals (deflated) matrices
         check_consistent_length(X, Y)
-        X = check_array(X, dtype=np.float64, copy=self.copy)
-        Y = check_array(Y, dtype=np.float64, copy=self.copy, ensure_2d=False)
+        if copy is None: copy = self.copy
+        X = check_array(X, dtype=np.float64, copy=copy)
+        Y = check_array(Y, dtype=np.float64, copy=copy, ensure_2d=False)
         if Y.ndim == 1:
             Y = Y.reshape(-1, 1)
 
@@ -417,7 +421,7 @@ class _PLS(six.with_metaclass(ABCMeta), BaseEstimator, TransformerMixin,
         Ypred = np.dot(X, self.coef_)
         return Ypred + self.y_mean_
 
-    def fit_transform(self, X, y=None, **fit_params):
+    def fit_transform(self, X, Y=None, copy=True, **fit_params):
         """Learn and apply the dimension reduction on the train data.
 
         Parameters
@@ -437,8 +441,7 @@ class _PLS(six.with_metaclass(ABCMeta), BaseEstimator, TransformerMixin,
         -------
         x_scores if Y is not given, (x_scores, y_scores) otherwise.
         """
-        check_is_fitted(self, 'x_mean_')
-        return self.fit(X, y, **fit_params).transform(X, y)
+        return self.fit(X, Y, copy=copy, **fit_params).transform(X, Y, copy=copy)
 
 
 class PLSRegression(_PLS):
