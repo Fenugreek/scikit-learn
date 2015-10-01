@@ -12,6 +12,7 @@ from ..externals import six
 import warnings
 from abc import ABCMeta, abstractmethod
 import numpy as np
+from numpy import random
 from scipy import linalg
 from ..utils import arpack
 from ..utils.validation import check_is_fitted
@@ -28,7 +29,16 @@ def _nipals_twoblocks_inner_loop(X, Y, mode="A", max_iter=500, tol=1e-06,
     similar to the Power method for determining the eigenvectors and
     eigenvalues of a X'Y.
     """
-    y_score = Y[:, [0]]
+
+
+    if Y.ndim == 2 and Y.shape[1] > 1:
+        # randomize initial y_score
+        # comment/uncomment below line to toggle repeatable results.
+        random.seed(0)
+        y_score = random.random((len(Y), 1))
+        y_score -= y_score.mean()
+        y_score /= y_score.std()
+    else: y_score = Y[:, [0]]
     x_weights_old = 0
     ite = 1
     X_pinv = Y_pinv = None
